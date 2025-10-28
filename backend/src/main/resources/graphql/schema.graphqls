@@ -1,0 +1,66 @@
+# ==========================
+# User Schema
+# ==========================
+type User {
+    userId: ID
+    email: String
+    passwordHash: String
+    userType: String
+    createdAt: String
+}
+
+# ==========================
+# Profile Schema
+# ==========================
+type Profile {
+    profileId: ID
+    userId: ID
+    firstName: String
+    lastName: String
+    aadharNumber: String
+    city: String
+    phoneNumber: String
+}
+
+# ==========================
+# Booking Schema
+# ==========================
+type Booking {
+    bookingId: ID
+    userId: ID
+    destination: String
+    rate: Int
+    bookingDate: String
+    numberOfPeople: Int
+    createdAt: String
+    status: String
+}
+
+# ==========================
+# Queries
+# ==========================
+type Query {
+    getUserById(userId: ID!): User
+    getUserByEmail(email: String!): User
+
+    getProfileByUserId(userId: ID!): Profile
+
+    getBookingById(bookingId: ID!): Booking
+    getBookingsByUserId(userId: ID!): [Booking]
+}
+
+# ==========================
+# Input
+# ==========================
+input UpdateCurrentProfileInput {
+    city: String
+    phoneNumber: String
+}
+
+# ==========================
+# Mutation
+# ==========================
+type Mutation {
+    updateCurrentUserProfile(email: String!, input: UpdateCurrentProfileInput): Profile
+    deleteUserByEmail(email: String!): String
+}
