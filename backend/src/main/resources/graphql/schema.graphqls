@@ -1,0 +1,140 @@
+# ==========================
+# User Schema
+# ==========================
+type User {
+    userId: ID
+    email: String
+    userType: String
+    createdAt: String
+}
+
+# ==========================
+# Profile Schema
+# ==========================
+type Profile {
+    profileId: ID
+    userId: ID
+    firstName: String
+    lastName: String
+    aadharNumber: String
+    city: String
+    phoneNumber: String
+}
+
+# ==========================
+# Booking Schema
+# ==========================
+type Booking {
+    bookingId: ID
+    userId: ID
+    destination: String
+    rate: Int
+    bookingDate: String
+    numberOfPeople: Int
+    createdAt: String
+    status: String
+}
+
+# ==========================
+# AuthResponse Schema
+# ==========================
+type AuthResponse {
+  token: String
+  error: String
+}
+
+# ==========================
+# UserProfileDTO Schema
+# ==========================
+type UserProfileDTO {
+    email: String
+    firstName: String
+    lastName: String
+    aadharNumber: String
+    city: String
+    phoneNumber: String
+}
+
+# ==========================
+# AdminProfileDTO Schema
+# ==========================
+type AdminProfileDTO {
+    userId: ID
+    email: String
+    userType: String
+    createdAt: String
+    firstName: String
+    lastName: String
+    aadharNumber: String
+    city: String
+    phoneNumber: String
+}
+
+# ==========================
+# BookingDTO Schema
+# ==========================
+type BookingDTO {
+    destination: String
+    rate: Int
+    bookingDate: String
+    numberOfPeople: Int
+}
+
+# ==========================
+# Queries for USER & ADMIN
+# ==========================
+type Query {
+    getCurrentAdminProfile: AdminProfileDTO
+    getUserById(userId: ID!): AdminProfileDTO
+    getAdminById(userId: ID!): AdminProfileDTO
+    getUserByEmail(email: String!): AdminProfileDTO
+    getAllUser: [AdminProfileDTO]
+    getBookingById(bookingId: ID!): Booking
+    getAllBookings: [Booking]
+
+    getCurrentUserProfile: UserProfileDTO
+    getAllBookingForAUser: [Booking]
+}
+
+# ==========================
+# Input
+# ==========================
+input UpdateCurrentProfileInput {
+    city: String
+    phoneNumber: String
+}
+
+input UserRegisterDTO {
+    email: String
+    password: String
+    firstName: String
+    lastName: String
+    aadharNumber: String
+    city: String
+    phoneNumber: String
+}
+
+input BookingInput {
+    destination: String
+    rate: Int
+    bookingDate: String
+    numberOfPeople: Int
+}
+
+# ==========================
+# Mutation
+# ==========================
+type Mutation {
+    loginUser(email: String!, password: String!): AuthResponse!
+    loginAdmin(email: String!, password: String!): AuthResponse!
+
+    registerUser(userRegisterDTO: UserRegisterDTO!): UserProfileDTO
+    createBooking(bookingDTO: BookingInput!): BookingDTO
+    updateUserBooking(bookingId: ID!, status: String!): Booking
+
+    updateCurrentUserProfile(email: String!, input: UpdateCurrentProfileInput): Profile
+    deleteUserByEmail(email: String!): String
+}
+
+
+
