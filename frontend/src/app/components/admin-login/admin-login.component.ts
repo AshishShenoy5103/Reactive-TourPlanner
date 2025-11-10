@@ -18,19 +18,28 @@ export class AdminLoginComponent {
   constructor(private authAdminService: AuthAdminService, private router: Router) {}
 
   onSubmit() {
-    console.log(this.email)
-    console.log(this.password)
-    this.authAdminService.login({email: this.email, password: this.password}).subscribe({
-      next: () => {
-        this.router.navigate(['/admin/dashboard']);
+    // console.log(this.email);
+    // console.log(this.password);
+
+    this.authAdminService.login(this.email, this.password).subscribe({
+      next: (result) => {
+        if (result.error) {
+          // GraphQL mutation returned an error message
+          this.errorMessage = result.error;
+          alert(this.errorMessage);
+        } else if (result.token) {
+          // Successful login
+          this.router.navigate(['/admin/dashboard']);
+        } else {
+          // Unexpected case
+          alert('Something went wrong');
+        }
       },
       error: (err) => {
-        if (err.status === 401 && err.error?.error) {
-          alert(err.error.error); // shows "Invalid email or password"
-        } else {
-          alert("Something went wrong");
-        }
+        // Network or Apollo errors
+        console.error(err);
+        alert('Something went wrong');
       }
-    })
+    });
   }
 }

@@ -1,25 +1,36 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { Apollo } from 'apollo-angular';
+import { map } from 'rxjs/operators';
+import { gql } from '@apollo/client/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthAdminService {
-  private baseUrl = '/api/auth/admin';
+  constructor(private http: HttpClient, private apollo: Apollo) {}
 
-  constructor(private http: HttpClient) {}
+  login(email: string, password: string): Observable<{ token: string; error: string | null }> {
+      const LOGIN_MUTATION = gql`
+        mutation LoginAdmin($email: String!, $password: String!) {
+          loginAdmin(email: $email, password: $password) {
+            token
+            error
+          }
+        }
+      `;
 
-  login(loginData: any): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.baseUrl}/login`, loginData)
-      .pipe(
-        tap(response => {
-        // console.log(loginData);
-        // console.log(response);
-          // Save token to localStorage or sessionStorage
-          localStorage.setItem('authToken', response.token);
+      return this.apollo.mutate<{ loginAdmin: { token: string; error: string | null } }>({
+        mutation: LOGIN_MUTATION,
+        variables: { email, password }
+      }).pipe(
+        map(result => {
+          const loginData = result.data?.loginAdmin!;
+          if (loginData.token) localStorage.setItem('authToken', loginData.token);
+          return loginData;
         })
       );
-  }
+    }
 
 }

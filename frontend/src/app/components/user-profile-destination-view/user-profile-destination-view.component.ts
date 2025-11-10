@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from "../header/header.component";
+import { Apollo } from 'apollo-angular';
+import { gql } from '@apollo/client/core';
+import { UserService } from '../../services/UserService';
+
 
 interface Booking {
   bookingId: number;
@@ -25,20 +28,49 @@ export class UserProfileDestinationViewComponent implements OnInit {
   booking?: Booking;
   token: string | null = null;
 
-  constructor(private route: ActivatedRoute, private http: HttpClient) {}
+  constructor(private route: ActivatedRoute, private http: HttpClient, private apollo: Apollo, private userService: UserService) {}
 
   ngOnInit(): void {
     this.token = localStorage.getItem('authToken');
     this.bookingId = Number(this.route.snapshot.paramMap.get('id'));
 
+    const GET_BOOKING_BY_ID = gql`
+    query GetBookingById($bookingId: ID!) {
+      getBookingById(bookingId: $bookingId) {
+        bookingId
+        userId
+        destination
+        rate
+        bookingDate
+        numberOfPeople
+        createdAt
+        status
+      }
+    }
+  `;
+
     if (this.token && this.bookingId) {
       const headers = new HttpHeaders().set('Authorization', `Bearer ${this.token}`);
 
-      this.http.get<Booking>(`/api/user/booking/${this.bookingId}`, { headers })
-        .subscribe({
-          next: (data) => this.booking = data,
-          error: (err) => console.error('Failed to fetch booking detail', err)
-        });
+      this.apollo.query<{ getBookingById: Booking }>({
+        query: GET_BOOKING_BY_ID,
+        variables: { bookingId: this.bookingId },
+        context: {
+          headers: new HttpHeaders({
+            Authorization: `Bearer ${this.token}`
+          })
+        },
+        fetchPolicy: 'no-cache'
+      }).subscribe({
+        next: (result) => {
+          if (result.data) {
+            this.booking = result.data.getBookingById;
+          } else {
+            console.error('No booking data returned');
+          }
+        },
+        error: (err) => console.error('Failed to fetch booking detail', err)
+      })
     }
   }
 

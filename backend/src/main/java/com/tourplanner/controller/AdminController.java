@@ -60,6 +60,12 @@ public class AdminController {
 
     @QueryMapping
     @PreAuthorize("hasRole('ADMIN')")
+    public Flux<AdminProfileDTO> getAllAdmin() {
+        return adminService.getAllAdmin();
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public Mono<Booking> getBookingById(@Argument Long bookingId) {
         return adminService.getBookingById(bookingId);
     }
@@ -75,4 +81,15 @@ public class AdminController {
         return adminService.updateUserBooking(bookingId, status);
     }
 
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<UserProfileDTO> updateUserById(@Argument Long userId, @Argument UserProfileDTO userProfileDTO) {
+        return adminService.updateUserById(userId, userProfileDTO);
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<String> deleteUserById(@Argument Long userId) {
+        return adminService.deleteUserById(userId);
+    }
 }

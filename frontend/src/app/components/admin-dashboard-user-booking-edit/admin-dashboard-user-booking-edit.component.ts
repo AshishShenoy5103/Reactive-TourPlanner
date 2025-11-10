@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { BookingService } from '../../services/BookingService';
+import { Apollo, gql } from 'apollo-angular';
 
 @Component({
   selector: 'app-admin-dashboard-user-booking-edit',
@@ -17,24 +18,50 @@ export class AdminDashboardUserBookingEditComponent {
   editMode = false;
   allowedStatuses: string[] = [];
 
-  constructor(private http: HttpClient, private bookingService:BookingService) {}
+  constructor(private http: HttpClient, private bookingService: BookingService, private apollo: Apollo) { }
 
   fetchBooking() {
     this.searchClicked = true;
     if (!this.searchBookingId) return;
 
     const token = localStorage.getItem('authToken');
-    this.http.get(`/api/admin/user/booking/${this.searchBookingId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (data: any) => {
-        this.booking = data;
-        this.setAllowedStatuses();
-      },
-      error: () => {
-        this.booking = null;
+    const GET_BOOKING_BY_ID = gql`
+    query GetBookingById($bookingId: ID!) {
+      getBookingById(bookingId: $bookingId) {
+        bookingId
+        userId
+        destination
+        rate
+        bookingDate
+        numberOfPeople
+        createdAt
+        status
       }
-    });
+    }
+  `;
+
+    if (token) {
+      this.apollo
+        .query({
+          query: GET_BOOKING_BY_ID,
+          variables: { bookingId: this.searchBookingId },
+          context: {
+            headers: new HttpHeaders({
+              Authorization: `Bearer ${token}`
+            })
+          },
+          fetchPolicy: 'no-cache'
+        })
+        .subscribe({
+          next: (result: any) => {
+            this.booking = result.data.getBookingById;
+            this.setAllowedStatuses();
+          },
+          error: () => {
+            this.booking = null;
+          }
+        });
+    }
   }
 
   setAllowedStatuses() {
@@ -59,16 +86,47 @@ export class AdminDashboardUserBookingEditComponent {
   }
 
   onSave() {
-    if (!this.booking) return;
-    const token = localStorage.getItem('authToken');
-    this.http.put(`/api/admin/user/booking/${this.booking.bookingId}`, this.booking, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: () => {
+  if (!this.booking) return;
+
+  const token = localStorage.getItem('authToken');
+
+  const UPDATE_USER_BOOKING = gql`
+    mutation UpdateUserBooking($bookingId: ID!, $status: String!) {
+      updateUserBooking(bookingId: $bookingId, status: $status) {
+        bookingId
+        userId
+        destination
+        rate
+        bookingDate
+        numberOfPeople
+        createdAt
+        status
+      }
+    }
+  `;
+
+  this.apollo
+    .mutate({
+      mutation: UPDATE_USER_BOOKING,
+      variables: {
+        bookingId: this.booking.bookingId,
+        status: this.booking.status
+      },
+      context: {
+        headers: new HttpHeaders({
+          Authorization: `Bearer ${token}`
+        })
+      }
+    })
+    .subscribe({
+      next: (result: any) => {
         this.editMode = false;
         this.bookingService.notifyBookingsChanged();
         this.fetchBooking(); // Refresh data
+      },
+      error: (err) => {
+        console.error('Error updating booking:', err);
       }
     });
-  }
+}
 }

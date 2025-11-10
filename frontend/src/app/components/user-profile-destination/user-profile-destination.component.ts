@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { HttpClient} from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive, RouterModule, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterModule} from '@angular/router';
 import { Apollo } from 'apollo-angular';
 import { gql } from '@apollo/client/core';
 import { HttpHeaders } from '@angular/common/http';

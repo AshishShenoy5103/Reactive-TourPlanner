@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/UserService';
+import { Apollo, gql } from 'apollo-angular';
 
 @Component({
   selector: 'app-admin-dashboard-user-details',
@@ -13,7 +14,7 @@ export class AdminDashboardUserDetailsComponent implements OnInit {
   users: any[] = [];
   selectedUser: any = null;
 
-  constructor(private http: HttpClient, private userService: UserService) {}
+  constructor(private http: HttpClient, private userService: UserService, private apollo: Apollo) {}
 
   ngOnInit() {
     this.fetchUsers();
@@ -25,14 +26,42 @@ export class AdminDashboardUserDetailsComponent implements OnInit {
 
   fetchUsers() {
     const token = localStorage.getItem('authToken');
-    this.http.get<any[]>('api/admin/users', { headers: { Authorization: `Bearer ${token}`}}).subscribe({
-      next: (data) => {
-        this.users = data;
-      },
-      error: (err) => {
-        console.error('Error fetching users:', err);
+    const GET_ALL_USER = gql`
+    query GetAllUser {
+      getAllUser {
+        userId
+        email
+        userType
+        createdAt
+        firstName
+        lastName
+        aadharNumber
+        city
+        phoneNumber
       }
-    });
+    }
+  `;
+
+  if (token) {
+    this.apollo
+      .query({
+        query: GET_ALL_USER,
+        context: {
+          headers: new HttpHeaders({
+              Authorization: `Bearer ${token}`
+          })
+        },
+        fetchPolicy: 'no-cache'
+      })
+      .subscribe({
+        next: (result: any) => {
+          this.users = result.data.getAllUser;
+        },
+        error: (err) => {
+          console.error('Error fetching users:', err);
+        }
+      });
+  }
   }
 
   viewUser(user: any) {

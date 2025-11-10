@@ -89,6 +89,7 @@ type Query {
     getAdminById(userId: ID!): AdminProfileDTO
     getUserByEmail(email: String!): AdminProfileDTO
     getAllUser: [AdminProfileDTO]
+    getAllAdmin: [AdminProfileDTO]
     getBookingById(bookingId: ID!): Booking
     getAllBookings: [Booking]
 
@@ -114,6 +115,15 @@ input UserRegisterDTO {
     phoneNumber: String
 }
 
+input UserProfileInput {
+    email: String
+    firstName: String
+    lastName: String
+    aadharNumber: String
+    city: String
+    phoneNumber: String
+}
+
 input BookingInput {
     destination: String
     rate: Int
@@ -131,9 +141,11 @@ type Mutation {
     registerUser(userRegisterDTO: UserRegisterDTO!): UserProfileDTO
     createBooking(bookingDTO: BookingInput!): BookingDTO
     updateUserBooking(bookingId: ID!, status: String!): Booking
+    updateUserById(userId: ID!, userProfileDTO: UserProfileInput!): UserProfileDTO
 
     updateCurrentUserProfile(email: String!, input: UpdateCurrentProfileInput): Profile
     deleteUserByEmail(email: String!): String
+    deleteUserById(userId: ID!): String
 }
 
 
